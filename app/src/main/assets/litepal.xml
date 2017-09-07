@@ -1,0 +1,11 @@
+<litepal>
+
+    <dbname value="tt_weather" />
+    <version value="1" />
+
+    <list>
+        <mapping class="com.rocker.ttweather.Model.Province" />
+        <mapping class="com.rocker.ttweather.Model.City" />
+        <mapping class="com.rocker.ttweather.Model.County" />
+    </list>
+</litepal>
