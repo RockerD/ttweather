@@ -1,4 +1,4 @@
-package com.rocker.ttweather.View;
+package com.rocker.ttweather.Presenter;
 
 /**
  * Created by Administrator on 2017/9/7.
@@ -7,5 +7,8 @@ package com.rocker.ttweather.View;
  * @projectName: TTWeather
  */
 
-public interface BaseView {
+public interface BaseIPresenter {
+
+
+
 }

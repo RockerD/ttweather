@@ -7,5 +7,8 @@ package com.rocker.ttweather.Presenter;
  * @projectName: TTWeather
  */
 
-public interface BasePresenter {
+public class BasePresenter implements BaseIPresenter {
+
+
+
 }
