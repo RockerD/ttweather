@@ -20,10 +20,8 @@ import okhttp3.Response;
 
 public class WeatherPresenter implements BaseIPresenter {
 
-    private static final String requestBingPic = "http://guolin.tech/api/bing_pic";
-
     public void loadBingPic() {
-        HttpUtil.sendOkHttpRequest(requestBingPic, new Callback() {
+        HttpUtil.sendOkHttpRequest(HttpUtil.requestBingPic, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 Toast.makeText(MyApplication.getContext(),

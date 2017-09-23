@@ -27,6 +27,9 @@ public class HttpUtil {
     public static final String BASE_URL = "http://guolin.tech";
     public static final String WEATHER_KEY_CODE = "bc0418b57b2d4918819d3974ac1285d9";
 
+    //每日一图地址
+    public static final String requestBingPic = "http://guolin.tech/api/bing_pic";
+
     private static HttpService service;
 
     public interface HttpService {

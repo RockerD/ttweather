@@ -318,6 +318,11 @@ public class JsonParseUtil {
 
     }
 
+    /**
+     *  从服务器获取天气数据
+     * @param cityId
+     * @param callback
+     */
     public static void handleWeatherDataFromServer(String cityId, Callback<String> callback) {
 
         Call<String> call = HttpUtil.getServiceInstance()
@@ -326,6 +331,10 @@ public class JsonParseUtil {
         call.enqueue(callback);
     }
 
+    /**
+     *  对天气数据进行解析
+     * @param response
+     */
     public static void handleWeatherData(final String response) {
 
         Observable.just(response)
