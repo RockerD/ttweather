@@ -1,4 +1,4 @@
-package com.rocker.ttweather.View;
+package com.rocker.ttweather.View.viewInterface;
 
 import android.content.Context;
 

@@ -14,9 +14,10 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.rocker.ttweather.Model.BaseEvent;
+import com.rocker.ttweather.Model.event.BaseEvent;
 import com.rocker.ttweather.Presenter.FragmentPresenter;
 import com.rocker.ttweather.R;
+import com.rocker.ttweather.View.viewInterface.ChooseAreaFragmentIView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -66,7 +67,7 @@ public class ChooseAreaFragment extends Fragment implements ChooseAreaFragmentIV
 
         EventBus.getDefault().register(this);
 
-        fPresenter = new FragmentPresenter(this);
+        fPresenter = new FragmentPresenter(this, getContext());
 
         adapter = new ArrayAdapter<String>(getContext(),
                 android.R.layout.simple_list_item_1, fPresenter.getDataList());

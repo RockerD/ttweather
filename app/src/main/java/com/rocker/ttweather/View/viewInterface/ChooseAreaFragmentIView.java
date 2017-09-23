@@ -1,6 +1,6 @@
-package com.rocker.ttweather.View.fragment;
+package com.rocker.ttweather.View.viewInterface;
 
-import com.rocker.ttweather.View.BaseIView;
+import com.rocker.ttweather.View.viewInterface.BaseIView;
 
 /**
  * Created by Administrator on 2017/9/9.

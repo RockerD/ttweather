@@ -1,14 +1,21 @@
 package com.rocker.ttweather.Util;
 
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.rocker.ttweather.App.MyApplication;
 import com.rocker.ttweather.Model.City;
 import com.rocker.ttweather.Model.County;
 import com.rocker.ttweather.Model.Province;
+import com.rocker.ttweather.Model.Weather;
+import com.rocker.ttweather.Model.event.WeatherEvent;
 import com.rocker.ttweather.Presenter.FragmentPresenter;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.litepal.crud.DataSupport;
@@ -21,6 +28,7 @@ import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
@@ -240,7 +248,8 @@ public class JsonParseUtil {
     /**
      * 解析和处理服务器返回的县级数据
      */
-    public static void handleCountyResult(final FragmentPresenter presenter, int provinceId, final int cityId) {
+    public static void handleCountyResult(final FragmentPresenter presenter,
+                                          int provinceId, final int cityId) {
 
         Call<String> countyCall = HttpUtil.getServiceInstance()
                 .getCountyData(String.valueOf(provinceId), String.valueOf(cityId));
@@ -306,6 +315,68 @@ public class JsonParseUtil {
                         "获取数据失败", Toast.LENGTH_SHORT).show();
             }
         });
+
+    }
+
+    public static void handleWeatherDataFromServer(String cityId, String key) {
+
+        Call<String> call = HttpUtil.getServiceInstance().getWeatherData(cityId, key);
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (!TextUtils.isEmpty(response.body())) {
+                    handleWeatherData(response.body());
+
+                } else Toast.makeText(MyApplication.getContext(),
+                        "网络连接失败！", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Log.d(TAG, "天气数据获取失败");
+            }
+        });
+    }
+
+    public static void handleWeatherData(final String response) {
+
+        Observable.just(response)
+                .observeOn(Schedulers.newThread())
+                .map(new Function<String, Weather>() {
+                    @Override
+                    public Weather apply(@NonNull String s) throws Exception {
+                        JSONObject jsonObject = new JSONObject(s);
+                        JSONArray jsonArray = jsonObject.getJSONArray("HeWeather");
+                        String weatherContent = jsonArray.getJSONObject(0).toString();
+                        return new Gson().fromJson(weatherContent, Weather.class);
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Weather>() {
+                    @Override
+                    public void accept(Weather weather) throws Exception {
+
+                        WeatherEvent event = new WeatherEvent();
+
+                        if (weather != null && "ok".equals(weather.status)) {
+                            event.setWeather(weather);
+                            event.setSuccess(true);
+
+                            SharedPreferences.Editor editor = PreferenceManager
+                                    .getDefaultSharedPreferences(MyApplication.getContext())
+                                    .edit();
+                            editor.putString("weather", response);
+                            editor.apply();
+
+                        } else {
+                            event.setSuccess(false);
+                            Toast.makeText(MyApplication.getContext(),
+                                    "获取天气信息失败", Toast.LENGTH_SHORT).show();
+                        }
+
+                        EventBus.getDefault().post(event);
+                    }
+                });
 
     }
 }

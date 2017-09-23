@@ -1,14 +1,18 @@
 package com.rocker.ttweather.Presenter;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.View;
 
 import com.rocker.ttweather.App.MyApplication;
-import com.rocker.ttweather.Model.BaseEvent;
 import com.rocker.ttweather.Model.City;
 import com.rocker.ttweather.Model.County;
 import com.rocker.ttweather.Model.Province;
+import com.rocker.ttweather.Model.event.BaseEvent;
 import com.rocker.ttweather.Util.JsonParseUtil;
-import com.rocker.ttweather.View.fragment.ChooseAreaFragmentIView;
+import com.rocker.ttweather.View.activity.WeatherActivity;
+import com.rocker.ttweather.View.fragment.ChooseAreaFragment;
+import com.rocker.ttweather.View.viewInterface.ChooseAreaFragmentIView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -27,11 +31,14 @@ import java.util.List;
 
 public class FragmentPresenter implements BaseIPresenter {
 
+    private static final String TAG = FragmentPresenter.class.getSimpleName();
+
     public static final int LEVEL_PROVINCE = 0;
     public static final int LEVEL_CITY = 1;
     public static final int LEVEL_COUNTY = 2;
 
     private ChooseAreaFragmentIView view;
+    private Context context;
 
     private List<String> dataList = new ArrayList<>();
 
@@ -43,8 +50,9 @@ public class FragmentPresenter implements BaseIPresenter {
     private City currentCity;             //当前城市
     private static int currentLevel;             //选中的级别
 
-    public FragmentPresenter(ChooseAreaFragmentIView view) {
+    public FragmentPresenter(ChooseAreaFragmentIView view, Context context) {
         this.view = view;
+        this.context = context;
         EventBus.getDefault().register(this);
     }
 
@@ -64,6 +72,14 @@ public class FragmentPresenter implements BaseIPresenter {
         } else if (currentLevel == LEVEL_CITY) {
             currentCity = cityList.get(position);
             queryCounties();
+
+        } else if (currentLevel == LEVEL_COUNTY) {
+            String weatherId = countyList.get(position).getWeatherId();
+            Intent intent = new Intent(context, WeatherActivity.class);
+            intent.putExtra("weather_id", weatherId);
+
+            WeatherActivity.startWeatherActivity(context, intent);
+            ((ChooseAreaFragment)view).getActivity().finish();
         }
     }
 

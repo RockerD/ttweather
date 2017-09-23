@@ -1,4 +1,4 @@
-package com.rocker.ttweather.Model;
+package com.rocker.ttweather.Model.event;
 
 /**
  * Created by Administrator on 2017/9/8.
@@ -10,10 +10,11 @@ package com.rocker.ttweather.Model;
 public class BaseEvent {
 
     public static final int EVENT_KEYBACK = 3;
+//    public static final int EVENT_WEATHER = 4;
 
-    private boolean isSuccess;
-    private int eventType;
-    private String Message;
+    public boolean isSuccess;
+    public int eventType;
+    public String Message;
 
     public boolean isSuccess() {
         return isSuccess;
