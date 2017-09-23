@@ -318,24 +318,12 @@ public class JsonParseUtil {
 
     }
 
-    public static void handleWeatherDataFromServer(String cityId, String key) {
+    public static void handleWeatherDataFromServer(String cityId, Callback<String> callback) {
 
-        Call<String> call = HttpUtil.getServiceInstance().getWeatherData(cityId, key);
-        call.enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-                if (!TextUtils.isEmpty(response.body())) {
-                    handleWeatherData(response.body());
+        Call<String> call = HttpUtil.getServiceInstance()
+                .getWeatherData(cityId, HttpUtil.WEATHER_KEY_CODE);
 
-                } else Toast.makeText(MyApplication.getContext(),
-                        "网络连接失败！", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                Log.d(TAG, "天气数据获取失败");
-            }
-        });
+        call.enqueue(callback);
     }
 
     public static void handleWeatherData(final String response) {

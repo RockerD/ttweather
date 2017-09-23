@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.rocker.ttweather.App.MyApplication;
 import com.rocker.ttweather.Model.event.BaseEvent;
 import com.rocker.ttweather.Presenter.FragmentPresenter;
 import com.rocker.ttweather.R;
@@ -67,7 +69,7 @@ public class ChooseAreaFragment extends Fragment implements ChooseAreaFragmentIV
 
         EventBus.getDefault().register(this);
 
-        fPresenter = new FragmentPresenter(this, getContext());
+        fPresenter = new FragmentPresenter(this);
 
         adapter = new ArrayAdapter<String>(getContext(),
                 android.R.layout.simple_list_item_1, fPresenter.getDataList());
@@ -98,19 +100,19 @@ public class ChooseAreaFragment extends Fragment implements ChooseAreaFragmentIV
 
     @Override
     public void showProgress(Context context) {
-        if (progressDialog == null) {
-            progressDialog = new ProgressDialog(getContext());
-            progressDialog.setMessage("加载中...");
-            progressDialog.setCanceledOnTouchOutside(false);
-        }
-        progressDialog.show();
+//        if (progressDialog == null) {
+//            progressDialog = new ProgressDialog(context);
+//            progressDialog.setMessage("加载中...");
+//            progressDialog.setCanceledOnTouchOutside(false);
+//        }
+//        progressDialog.show();
     }
 
     @Override
     public void closeProgress() {
-        if (progressDialog != null) {
-            progressDialog.dismiss();
-        }
+//        if (progressDialog != null) {
+//            progressDialog.dismiss();
+//        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

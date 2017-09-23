@@ -8,10 +8,15 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -19,13 +24,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.rocker.ttweather.App.MyApplication;
 import com.rocker.ttweather.Model.Weather;
 import com.rocker.ttweather.Model.event.BaseEvent;
 import com.rocker.ttweather.Model.event.WeatherEvent;
 import com.rocker.ttweather.Model.weather.Forecast;
 import com.rocker.ttweather.Presenter.WeatherPresenter;
 import com.rocker.ttweather.R;
-import com.rocker.ttweather.Util.HttpUtil;
 import com.rocker.ttweather.Util.JsonParseUtil;
 import com.rocker.ttweather.View.viewInterface.WeatherIView;
 
@@ -35,8 +40,12 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-public class WeatherActivity extends AppCompatActivity implements WeatherIView{
+public class WeatherActivity extends AppCompatActivity implements WeatherIView {
 
     private static final String TAG = WeatherActivity.class.getSimpleName();
 
@@ -76,9 +85,24 @@ public class WeatherActivity extends AppCompatActivity implements WeatherIView{
     @BindView(R.id.bing_pic_img)
     ImageView bingPicImg;
 
+    @BindView(R.id.swipeRefresh)
+    public SwipeRefreshLayout swipeRefresh;
+
+    @BindView(R.id.drawer_layout)
+    public DrawerLayout drawerLayout;
+
+    @BindView(R.id.nav_btn)
+    Button navBtn;
+
+    @OnClick(R.id.nav_btn)
+    public void selectLocation() {
+        //展开DrawerLayout
+        drawerLayout.openDrawer(GravityCompat.START);
+    }
+
     private WeatherPresenter weatherPresenter;
     private ProgressDialog progressDialog;
-
+    private String mWeatherId;
 
     public static void startWeatherActivity(Context context, Intent intent) {
         context.startActivity(intent);
@@ -96,26 +120,16 @@ public class WeatherActivity extends AppCompatActivity implements WeatherIView{
         initView();
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onWeatherEvent(WeatherEvent event) {
-        if (event.isSuccess()) {
-            Weather weather = event.getWeather();
-            showWeatherInfo(weather);
-
-        } else Toast.makeText(this, "获取天启信息失败！", Toast.LENGTH_SHORT).show();
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onBaseEvent(BaseEvent event) {
-        if (event.isSuccess()) {
-            Glide.with(this).load(event.getMessage()).into(bingPicImg);
-
-        } else Toast.makeText(this, "获取天启信息失败！", Toast.LENGTH_SHORT).show();
-    }
-
-
     @Override
     public void initView() {
+
+        swipeRefresh.setColorSchemeResources(R.color.colorPrimary);
+        swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                requestWeather(mWeatherId);
+            }
+        });
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = prefs.getString("weather", null);  //获取本地天气信息
@@ -132,10 +146,8 @@ public class WeatherActivity extends AppCompatActivity implements WeatherIView{
             JsonParseUtil.handleWeatherData(weatherString);
 
         } else {
-            String weatherId = getIntent().getStringExtra("weather_id");
-            String key = HttpUtil.WEATHER_KEY_CODE;
-            weatherLayout.setVisibility(View.VISIBLE);
-            JsonParseUtil.handleWeatherDataFromServer(weatherId, key);
+            mWeatherId = getIntent().getStringExtra("weather_id");
+            requestWeather(mWeatherId);
         }
     }
 
@@ -151,8 +163,31 @@ public class WeatherActivity extends AppCompatActivity implements WeatherIView{
         }
     }
 
+    public void requestWeather(String weatherId) {
+
+        JsonParseUtil.handleWeatherDataFromServer(weatherId, new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (!TextUtils.isEmpty(response.body())) {
+                    JsonParseUtil.handleWeatherData(response.body());
+
+                } else Toast.makeText(MyApplication.getContext(),
+                        "网络连接失败！", Toast.LENGTH_SHORT).show();
+
+                swipeRefresh.setRefreshing(false);
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                swipeRefresh.setRefreshing(false);
+                Log.d(TAG, "天气数据获取失败");
+            }
+        });
+    }
+
     @Override
     public void showWeatherInfo(Weather weather) {
+
         String cityName = weather.basic.cityName;
         String updateTime = weather.basic.update.updateTime.split(" ")[1];
         String degree = weather.now.temperature + "℃";
@@ -211,4 +246,24 @@ public class WeatherActivity extends AppCompatActivity implements WeatherIView{
             progressDialog.dismiss();
         }
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onWeatherEvent(WeatherEvent event) {
+        if (event.isSuccess()) {
+            Weather weather = event.getWeather();
+            mWeatherId = weather.basic.weatherId;
+            showWeatherInfo(weather);
+//            swipeRefresh.setRefreshing(false);
+
+        } else Toast.makeText(this, "获取天启信息失败！", Toast.LENGTH_SHORT).show();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onBaseEvent(BaseEvent event) {
+        if (event.isSuccess()) {
+            Glide.with(this).load(event.getMessage()).into(bingPicImg);
+
+        } else Toast.makeText(this, "获取天启信息失败！", Toast.LENGTH_SHORT).show();
+    }
+
 }
